@@ -46,57 +46,7 @@ class SignIn(APIView):
 class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = serializers.CustomTokenRefreshSerializer
 
-class BulkImage(APIView):
-    def post(self, request):
-        files = request.FILES.getlist('image_file')
 
-        image_data_list = []
-        errors = []
-
-        with transaction.atomic():
-            savepoint = transaction.savepoint()  # Create a savepoint to rollback partial changes
-            for file in files:
-                image_data = {
-                    'user': request.user,
-                    'image_file': file,
-                    'title': request.data.get('title', None),
-                    'order': request.data.get('order', None),
-                    'album': request.data.get('album', None)
-                }
-
-                serializer = serializers.ImageSerializer(data=image_data)
-                if serializer.is_valid():
-                    serializer.save()
-                    image_data_list.append(serializer.data)
-                else:
-                    errors.append(serializer.errors)
-                    # Rollback only this savepoint, continue processing other images
-                    transaction.savepoint_rollback(savepoint)
-                    # Create a new savepoint after the rollback for future iterations
-                    savepoint = transaction.savepoint()
-
-            # If there were errors, rollback the entire transaction
-            if errors:
-                transaction.savepoint_rollback(savepoint)
-                return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Commit the transaction
-            transaction.savepoint_commit(savepoint)
-
-        return Response(image_data_list, status=status.HTTP_201_CREATED)
-    
-    def delete(self, request):
-        image_ids = request.data['ids']
-        models.Image.objects.filter(id__in=image_ids).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    
-class BulkAddToAlbum(APIView):
-    def patch(self, request):
-        image_ids = request.data['ids']
-        album_id = request.data['album_id']
-        models.Image.objects.filter(id__in=image_ids).update(album=album_id)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    
 class ImageList(generics.ListAPIView):
     serializer_class = serializers.ImageSerializer
     permission_classes = [IsAuthenticated]
@@ -104,9 +54,55 @@ class ImageList(generics.ListAPIView):
     def get_queryset(self):
         return models.Image.objects.filter(user=self.request.user)
 
+
 class ImageDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.ImageSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return models.Image.objects.filter(user=self.request.user)
+    
+class BulkImageUpload(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        max_order = models.Image.objects.filter(user=request.user).count()
+
+        uploaded_images = []
+        titles = request.data.getlist('titles')
+        files = request.FILES.getlist('files')  # Access all files in `files`
+
+        for index, (image_file, title) in enumerate(zip(files, titles)):
+            new_image = models.Image.objects.create(
+                user=request.user,
+                image_file=image_file,
+                title=title or 'Untitled',
+                order=max_order + index + 1
+            )
+            uploaded_images.append(serializers.ImageSerializer(new_image).data) 
+
+        return Response(uploaded_images, status=status.HTTP_201_CREATED)
+    
+
+class UpdateImageOrders(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        images_data = request.data.get('images', [])
+        
+        with transaction.atomic():
+            for image_data in images_data:
+                image_id = image_data.get('id')
+                new_order = image_data.get('order')
+                
+                try:
+                    image = models.Image.objects.get(
+                        id=image_id,
+                        user=request.user
+                    )
+                    image.order = new_order
+                    image.save()
+                except models.Image.DoesNotExist:
+                    continue
+
+        return Response(status=status.HTTP_204_NO_CONTENT) 

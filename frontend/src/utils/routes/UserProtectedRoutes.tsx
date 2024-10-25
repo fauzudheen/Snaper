@@ -34,6 +34,7 @@ const UserProtectedRoutes = () => {
         try {
           const response = await axios.post(`${API_BASE_URL}/token/verify/`, { token: refreshToken });
           if (response.status === 200) {
+            console.log('Token verified successfully:', response.data);
             return
           } else {
             console.error('Failed to verify token:', response.data);
@@ -55,7 +56,7 @@ const UserProtectedRoutes = () => {
     useEffect(() => {
         let interval: number | null = null;
         if (isAuthenticated) {
-          interval = setInterval(updateToken, 110 * 60 * 1000); // 110 minutes
+          interval = setInterval(updateToken, 50 * 1000); // 110 minutes
         }
     
         return () => {

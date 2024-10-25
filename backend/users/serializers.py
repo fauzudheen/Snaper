@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     class Meta:
         model = models.User
-        fields = '__all__'
+        fields = ['id', 'username', 'password']  
 
     def create(self, validated_data):
         """
@@ -47,12 +47,14 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
 
         return data
 
-class AlbumSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Album
-        fields = '__all__'
-
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Image
-        fields = '__all__'
+        fields = ['id', 'image_file', 'title', 'order', 'created_at']
+
+class ImageUploadSerializer(serializers.Serializer):
+    file = serializers.ImageField()
+    title = serializers.CharField(max_length=200)
+
+class MultipleImageUploadSerializer(serializers.Serializer):
+    images = ImageUploadSerializer(many=True)

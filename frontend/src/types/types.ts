@@ -60,3 +60,12 @@ export interface AuthState {
     refreshToken: string | null;
     user: User | null;
   }
+
+export  interface Image {
+    id: number;
+    title: string;
+    image_file: string;
+    order: number;
+    created_at: string;
+  }
+  
