@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { SignUpErrors, SignUpRequest } from '../types/types'
 import { API_BASE_URL } from '../utils/api/urls'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 const Signup = () => {
   const [formData, setFormData] = useState<SignUpRequest>({
@@ -17,6 +17,9 @@ const Signup = () => {
     password: '',
     confirmPassword: ''
   })
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
 
   const validateForm = () => {
     const newErrors: SignUpErrors = {}
@@ -44,13 +47,16 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    
     if (!validateForm()) {
       return
     }
+
+    setIsSubmitting(true)
+    
     try {
-      const response = await axios.post(`${API_BASE_URL}/users/`, formData) 
-      console.log(response.data)
+      await axios.post(`${API_BASE_URL}/signup/`, formData) 
+      navigate('/email-verification', { state: { email: formData.email } });
     } catch (error) {
       console.error("Error creating user:", error);
       
@@ -69,6 +75,8 @@ const Signup = () => {
         }
         setErrors(newErrors)
       }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -209,11 +217,22 @@ const Signup = () => {
                         )}
                     </div>
                     <button 
+                        disabled={isSubmitting} 
                         type="submit" 
-                        className="w-full bg-snaper-red-500 hover:bg-snaper-red-700 text-white p-3 font-medium uppercase tracking-wide transition-colors duration-200 ease-in-out"
+                        className="w-full bg-snaper-red-500 hover:bg-snaper-red-700 text-white p-3 
+                        font-medium uppercase disabled:cursor-not-allowed  disabled:bg-gray-200 disabled:text-gray-500
+                        tracking-wide transition-colors duration-200 ease-in-out"
                     >
-                        Create Account
+                        {isSubmitting ? (
+                        <>
+                          <span className="animate-spin inline-block">↻</span>
+                          <span className="ml-2">Submitting...</span>
+                        </>
+                      ) : (
+                        'Create account'
+                      )}
                     </button>
+                    
 
                     <div className="text-center text-sm text-zinc-600">
                         Already have an account?{' '}

@@ -4,10 +4,16 @@ import ImageUploadModal from '../components/ImageUploadModal';
 import axiosInstance from '../utils/api/axiosInstance';
 import { API_BASE_URL } from '../utils/api/urls';
 import { Image } from '../types/types';
+import Grid from '../components/Grid';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import EditImageModal from '../components/EditImageModal';
 
 const Home: React.FC = () => {
   const [images, setImages] = useState<Image[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [imageToEdit, setImageToEdit] = useState<Image>();
 
   useEffect(() => {
     fetchImages();
@@ -28,13 +34,12 @@ const Home: React.FC = () => {
     try {
       await axiosInstance.delete(`${API_BASE_URL}/images/${imageId}/`);
       
-      // Remove the deleted image and update orders
       setImages((prevImages) => {
         const updatedImages = prevImages
           .filter((img) => img.id !== imageId)
           .map((img, index) => ({
             ...img,
-            order: index + 1 // Update order based on array position
+            order: index + 1 
           }));
         
         updateImageOrders(updatedImages);
@@ -61,67 +66,61 @@ const Home: React.FC = () => {
     }
   };
 
+  const handleReorder = (newImages: Image[]) => {
+    setImages(newImages);
+    updateImageOrders(newImages);
+  }
+
+  const EditImageClick = (imageId: number) => {
+    setImageToEdit(images.find((image) => image.id === imageId));
+    setIsEditModalOpen(true);
+  }
+
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto mb-8">
+    <DndProvider backend={HTML5Backend}>
+    <div className="min-h-screen bg-snaper-red-500 p-6">
+    <div className="max-w-7xl mx-auto mb-8">
+      <div className="backdrop-blur-md bg-white/10 p-6 shadow-lg">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">Image Gallery</h1>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 transition-all duration-200 shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 bg-white text-snaper-red-500 px-6 py-2 transition-all duration-200 hover:bg-opacity-90 shadow-sm hover:shadow-md"
           >
             <Upload className="w-5 h-5" />
             Add Images
           </button>
         </div>
       </div>
-
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {images.map((image, index) => (
-          <div
-            key={image.id}
-            className="relative group bg-white overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
-          >
-            <div className="relative aspect-square">
-              <img src={image.image_file} alt={image.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
-                <button
-                  onClick={() => handleDeleteImage(image.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-all duration-300 bg-red-500 hover:bg-red-600 text-white p-2"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-800 truncate">{image.title}</h3>
-              <p className="text-sm text-gray-500">Order: {index + 1}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Upload Images</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
-                ×
-              </button>
-            </div>
-            <ImageUploadModal
-              onUploadSuccess={() => {
-                fetchImages();
-                setIsModalOpen(false);
-              }}
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-            />
-          </div>
-        </div>
-      )}
     </div>
+
+        <div className="backdrop-blur-md bg-white/10 p-6 shadow-lg">
+          <Grid images={images} handleDeleteImage={handleDeleteImage} EditImageClick={EditImageClick} handleReorder={handleReorder}/>
+        </div>
+        {isModalOpen && (
+          <ImageUploadModal
+            onUploadSuccess={() => {
+              fetchImages();
+              setIsModalOpen(false);
+            }}
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+          />
+        )}
+
+        {isEditModalOpen && (
+          <EditImageModal
+            image={imageToEdit}
+            onSuccess={() => {
+              fetchImages();
+              setIsEditModalOpen(false);
+            }}
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+          />
+        )}  
+      </div>
+    </DndProvider>
   );
 };
 

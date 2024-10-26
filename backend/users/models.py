@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import random
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 class User(AbstractUser):
     """
@@ -13,6 +16,24 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
+class TemporaryUser(models.Model):
+    """
+    Temporary storage for user data during verification process
+    """
+    email = models.EmailField(max_length=255, unique=True)
+    username = models.CharField(max_length=150, null=True, blank=True)
+    password = models.CharField(max_length=128, null=True, blank=True)
+    otp = models.CharField(max_length=6)
+    otp_created_at = models.DateTimeField(auto_now_add=True)
+    
+    def is_otp_valid(self):
+        now = timezone.now()
+        expiration_time = self.otp_created_at + timedelta(minutes=5)
+        return now <= expiration_time
+
+    @staticmethod
+    def generate_otp():
+        return ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
 class Image(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -21,4 +42,3 @@ class Image(models.Model):
     order = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True) 
  
-

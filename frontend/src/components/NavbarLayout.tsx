@@ -1,11 +1,13 @@
 import { Outlet, Link } from 'react-router-dom'
-import { Home, LogOut } from 'lucide-react'
+import { Home, LogOut, User } from 'lucide-react'
 import { setUserSignOut } from '../utils/redux/authSlice'
 import { useDispatch } from 'react-redux'
-import { AppDispatch } from '../utils/redux/store'
+import { AppDispatch, RootState } from '../utils/redux/store'
+import { useSelector } from 'react-redux'
 
 const NavbarLayout = () => {
   const dispatch = useDispatch<AppDispatch>()
+  const user = useSelector((state: RootState) => state.auth.user)
   return (
     <div className="h-screen flex flex-col">
       <nav className="bg-white shadow-md">
@@ -18,20 +20,12 @@ const NavbarLayout = () => {
               </Link>
             </div>
             <div className="flex items-center">
-              <Link 
-                to="/" 
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition duration-150 ease-in-out"
+              <div 
+                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700"
               >
-                <Home className="h-5 w-5 mr-1" />
-                Home
-              </Link>
-              <Link 
-                to="/dashboard" 
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition duration-150 ease-in-out"
-              >
-                <Home className="h-5 w-5 mr-1" />
-                Dashboard
-              </Link>
+                <User className="h-5 w-5 mr-1" />
+                {user?.username || 'Guest'}
+              </div>
               <button 
                 className="ml-4 flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition duration-150 ease-in-out"
                 onClick={() => dispatch(setUserSignOut())}

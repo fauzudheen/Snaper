@@ -2,6 +2,7 @@ from . import models
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import get_user_model
 
 class UserSerializer(serializers.ModelSerializer):
     """
@@ -11,16 +12,14 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     class Meta:
         model = models.User
-        fields = ['id', 'username', 'password']  
+        fields = ['id', 'username', 'password', 'email']  
 
-    def create(self, validated_data):
-        """
-        Create a new user instance with hashed password.
-        """
-        # Create the user using the create_user() method to ensure password hashing
-        user = models.User.objects.create_user(**validated_data)
-        return user
-    
+class TemporaryUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.TemporaryUser
+        fields = ['email', 'username', 'password']
+
+
 class UserSignIn(serializers.Serializer):
     """
     This serializer validates the email and password provided by the user

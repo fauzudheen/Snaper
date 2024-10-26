@@ -13,7 +13,7 @@ const AuthProvider = ({children}: {children: React.ReactNode}) => {
     useEffect(() => {
         if (!isAuthenticated || !refreshToken) return;
 
-        const refreshInterval = setInterval(async () => {
+        const refreshTokenNow = async () => {
         try {
             const response = await axios.post(`${API_BASE_URL}/token/refresh/`, { 
             refresh: refreshToken 
@@ -22,12 +22,15 @@ const AuthProvider = ({children}: {children: React.ReactNode}) => {
             dispatch(setUserSignIn(response.data));
         } catch (error) {
             console.error('Failed to refresh token:', error);
-            dispatch(setUserSignOut());
+            dispatch(setUserSignOut()); 
         }
-        }, 5 * 60 * 1000); 
+        }; 
+        refreshTokenNow();
+
+        const refreshInterval = setInterval(refreshTokenNow, 5 * 60 * 1000); 
 
         return () => clearInterval(refreshInterval);
-    }, [isAuthenticated, refreshToken, dispatch]);
+    }, [dispatch]);
 
     return <>{children}</>;
     };

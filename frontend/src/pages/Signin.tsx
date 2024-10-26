@@ -5,7 +5,8 @@ import { API_BASE_URL } from '../utils/api/urls'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../utils/redux/store'
 import { setUserSignIn } from '../utils/redux/authSlice'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useToast } from '../context/ToastContext'
 
 const Signin: React.FC = () => {
     const [formData, setFormData] = useState<SignInRequest>({
@@ -14,16 +15,21 @@ const Signin: React.FC = () => {
     })
     const [error, setError] = useState<string>('')
     const dispatch = useDispatch<AppDispatch>()
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        setIsSubmitting(true)
         try {
             const response = await axios.post(`${API_BASE_URL}/signin/`, formData)
             console.log(response.data)
             dispatch(setUserSignIn(response.data))
+            showToast('Successfully signed in!', 'success')
         } catch (err) {
             console.error(err)
             setError('Invalid credentials');
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
@@ -35,6 +41,16 @@ const Signin: React.FC = () => {
 
         setError('')
     }
+    const { showToast } = useToast()
+    const location = useLocation()
+
+    React.useEffect(() => {
+        const message = location.state?.message
+        if (message) {
+            showToast(message, 'success')
+            window.history.replaceState({}, document.title)
+        }
+    }, [location, showToast])
 
     return (
         <div className='w-full h-screen flex'>
@@ -51,8 +67,6 @@ const Signin: React.FC = () => {
                     <p className="text-lg xl:text-xl text-white/80">
                         Snaper lets you easily register, manage, edit, and rearrange your image collections with bulk uploads and drag-and-drop features.
                     </p>
-
-
                     <div className="flex items-center gap-4 pt-4">
                         <div className="h-1 w-12 bg-white/30"></div>
                         <p className="text-white/60 text-sm tracking-wider">TRUSTED BY USERS</p>
@@ -90,6 +104,7 @@ const Signin: React.FC = () => {
                                 onChange={handleChange} 
                                 className='w-full border border-zinc-300 p-3 focus:outline-none focus:border-snaper-red-500 focus:ring-1 focus:ring-snaper-red-500 bg-white'
                                 placeholder="Enter your email"
+                                required
                             />
                         </div>
     
@@ -106,6 +121,7 @@ const Signin: React.FC = () => {
                                 onChange={handleChange} 
                                 className='w-full border border-zinc-300 p-3 focus:outline-none focus:border-snaper-red-500 focus:ring-1 focus:ring-snaper-red-500 bg-white'
                                 placeholder="Enter your password"
+                                required
                             />
                         </div>
     
@@ -114,12 +130,26 @@ const Signin: React.FC = () => {
                                 {error}
                             </div>
                         )}
-    
+                        <div className="text-center">
+                            <Link to="/forgot-password" className="text-sm text-zinc-600 hover:text-snaper-red-500">
+                                Forgot your password?
+                            </Link>
+                        </div>
                         <button 
+                            disabled={isSubmitting} 
                             type="submit" 
-                            className="w-full bg-snaper-red-500 hover:bg-snaper-red-700 text-white p-3 font-medium uppercase tracking-wide transition-colors duration-200 ease-in-out"
+                            className="w-full bg-snaper-red-500 hover:bg-snaper-red-700 text-white p-3 
+                            font-medium uppercase disabled:cursor-not-allowed  disabled:bg-gray-200 disabled:text-gray-500
+                            tracking-wide transition-colors duration-200 ease-in-out"
                         >
-                            Sign in
+                            {isSubmitting ? (
+                            <>
+                            <span className="animate-spin inline-block">↻</span>
+                            <span className="ml-2">Signing in...</span>
+                            </>
+                        ) : (
+                            'Sign in'
+                        )}
                         </button>
     
                         <div className="text-center text-sm text-zinc-600">

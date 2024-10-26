@@ -61,7 +61,7 @@ export interface AuthState {
     user: User | null;
   }
 
-export  interface Image {
+export interface Image{
     id: number;
     title: string;
     image_file: string;
@@ -69,3 +69,10 @@ export  interface Image {
     created_at: string;
   }
   
+  
+export type ToastType = 'success' | 'error' | 'warning' | 'info'
+export interface ToastMessage {
+    id: string;
+    type: ToastType;
+    message: string;
+}
