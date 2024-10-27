@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import ImageUploadModal from '../components/ImageUploadModal';
 import axiosInstance from '../utils/api/axiosInstance';
 import { API_BASE_URL } from '../utils/api/urls';

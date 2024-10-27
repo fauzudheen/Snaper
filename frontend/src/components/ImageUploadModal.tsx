@@ -38,7 +38,7 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({ onUploadSuccess, is
     setIsUploading(true);
     try {
       const formData = new FormData();
-      uploads.forEach((upload, index) => {
+      uploads.forEach((upload) => {
         formData.append('files', upload.file); // simpler structure
         formData.append('titles', upload.title);
       });
@@ -59,14 +59,11 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({ onUploadSuccess, is
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
     <div className="bg-white/95 backdrop-blur-md shadow-2xl w-full max-w-md flex flex-col h-[90vh] my-auto">
-      {/* Header Section */}
       <div className="p-6 border-b">
         <h2 className="text-2xl font-bold text-gray-800">Upload Images</h2>
       </div>
 
-      {/* Main Content Section - Scrollable */}
       <div className="flex-1 overflow-hidden flex flex-col p-6">
-        {/* Upload Input */}
         <div className="relative mb-6">
           <input 
             type="file" 
@@ -87,7 +84,6 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({ onUploadSuccess, is
           </label>
         </div>
 
-        {/* Images List - Scrollable */}
         <div className="space-y-4 overflow-y-auto flex-1">
           {uploads.map((upload, index) => (
             <div key={index} className="flex items-center gap-4 p-4 bg-gray-50">
@@ -108,7 +104,6 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({ onUploadSuccess, is
         </div>
       </div>
 
-      {/* Footer Section */}
       <div className="border-t p-6">
         <div className="flex justify-end gap-3">
           <button 

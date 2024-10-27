@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../utils/api/urls'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../utils/redux/store'
 import { setUserSignIn } from '../utils/redux/authSlice'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useToast } from '../context/ToastContext'
 
 const Signin: React.FC = () => {

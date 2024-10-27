@@ -13,6 +13,7 @@ const EmailVerification: React.FC = () => {
     const [isResending, setIsResending] = useState(false)
     const [isVerifying, setIsVerifying] = useState(false)
 
+
     useEffect(() => {
         if (!email) {
             navigate('/')
@@ -51,7 +52,7 @@ const EmailVerification: React.FC = () => {
             await axios.post(`${API_BASE_URL}/resend-otp/`, { email })
             setRemainingTime(60)
             setError('')
-        } catch (err) {
+        } catch (err) { 
             console.error(err)
             setError(err.response.data.error)
         } finally {
